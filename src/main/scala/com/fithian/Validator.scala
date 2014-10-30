@@ -21,13 +21,13 @@ object Validator
               originalValue: Option[T],
               errorMessage: Option[String]
     ): (T => JsCmd) = {
-        (t: T) => exp.getOrElse("(?s).*)".r).findFirstMatchIn(t.toString) match {
-            case Some(value) =>
-                onSuccess.map(_(t))
-                Noop
-            case None =>
+        (t: T) => exp.map(_.findFirstMatchIn(t.toString)) match {
+            case None if exp != None =>
                 errorMessage.map(error => S.error(error))
                 SetHtml(id, Text(originalValue.map(_.toString).getOrElse("")))
+            case _ =>
+                onSuccess.map(_(t))
+                Noop
         }
     }
 
