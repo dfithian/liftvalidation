@@ -4,7 +4,7 @@ import net.liftweb.util.CssSel
 import net.liftweb.util.Helpers._
 import net.liftweb.http.js.JsCmds.{SetValById, SetHtml, Noop}
 import net.liftweb.http.js.{JsCmd, JsExp}
-import net.liftweb.http.S
+import net.liftweb.http.{S, SHtml}
 import scala.util.matching.Regex
 import scala.xml.{Elem, NodeSeq, Text}
 
@@ -15,19 +15,25 @@ object Validator
      * 1. if it matches, do the success method
      * 2. if it doesn't match, show the error and reset the value
      */
-    def apply(id: String,
-              onSuccess: Option[String => Unit],
+    def apply[T](id: String,
+              onSuccess: Option[T => Unit],
               exp: Option[Regex],
-              originalValue: Option[String],
+              originalValue: Option[T],
               errorMessage: Option[String]
-    ): (String => JsCmd) = {
-        (s: String) => exp.getOrElse("(?s).*)".r).findFirstMatchIn(s) match {
+    ): (T => JsCmd) = {
+        (t: T) => exp.getOrElse("(?s).*)".r).findFirstMatchIn(t.toString) match {
             case Some(value) =>
-                onSuccess.map(_(s))
+                onSuccess.map(_(t))
                 Noop
             case None =>
                 errorMessage.map(error => S.error(error))
-                SetHtml(id, Text(originalValue.getOrElse("")))
+                SetHtml(id, Text(originalValue.map(_.toString).getOrElse("")))
         }
     }
+
+    def apply[T](id: String, onSuccess: T => Unit, exp: Regex, originalValue: T, errorMessage: String): (T => JsCmd) =
+        apply[T](id, Some(onSuccess), Some(exp), Some(originalValue), Some(errorMessage))
+
+    def apply[T](id: String, onSuccess: T => Unit, originalValue: T, errorMessage: String): (T => JsCmd) =
+        apply[T](id, Some(onSuccess), None, Some(originalValue), Some(errorMessage))
 }
