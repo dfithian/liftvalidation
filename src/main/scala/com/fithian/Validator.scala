@@ -11,7 +11,7 @@ import scala.xml.{Elem, NodeSeq, Text}
 object Validator
 {
     /**
-     * Validate an email string. Compare against a regular expression:
+     * Validate a string. Compare against a regular expression:
      * 1. if it matches, do the success method
      * 2. if it doesn't match, show the error and reset the value
      */
