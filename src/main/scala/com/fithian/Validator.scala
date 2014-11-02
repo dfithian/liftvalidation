@@ -1,39 +1,30 @@
 package com.fithian
 
-import net.liftweb.util.CssSel
-import net.liftweb.util.Helpers._
-import net.liftweb.http.js.JsCmds.{SetValById, SetHtml, Noop}
-import net.liftweb.http.js.{JsCmd, JsExp}
-import net.liftweb.http.{S, SHtml}
-import scala.util.matching.Regex
-import scala.xml.{Elem, NodeSeq, Text}
+import scala.xml.{NodeSeq, Node}
+import net.liftweb.http.js.JsCmds.{Script, Run}
+import net.liftweb.http.js.{JsCmd}
 
-object Validator
+abstract class Validator[T](id: String, submitButton: Option[String]) extends NodeSeq
 {
-    /**
-     * Validate a string. Compare against a regular expression:
-     * 1. if it matches, do the success method
-     * 2. if it doesn't match, show the error and reset the value
-     */
-    def apply[T](id: String,
-              onSuccess: Option[T => Unit],
-              exp: Option[Regex],
-              originalValue: Option[T],
-              errorMessage: Option[String]
-    ): (T => JsCmd) = {
-        (t: T) => exp.map(_.findFirstMatchIn(t.toString)) match {
-            case None if exp != None =>
-                errorMessage.map(error => S.error(error))
-                SetHtml(id, Text(originalValue.map(_.toString).getOrElse("")))
-            case _ =>
-                onSuccess.map(_(t))
-                Noop
-        }
+    protected def errorMessage: String
+    protected def script: String
+    protected val liftId: String = "lift__noticesContainer__" + id
+    // create an error box with the appropriate id
+    protected val errorBox: NodeSeq = <span class="error alert alert-danger" id={liftId}></span>
+    // fill the error box with the error message if it's empty
+    protected def error: String = """if ($('#""" + liftId + """').is(':empty')) { $('#""" + liftId + """').append('""" + errorMessage + """'); }"""
+    // clear the error box
+    protected val clear: String = """$('#""" + liftId + """').empty();"""
+    // attach the script to the attribute
+    protected def onBlur: JsCmd = Run("""$('#""" + id + """').focusout(""" + script + """);""")
+    // prevent the form submit if the id was supplied
+    protected val (preventSubmit: String, allowSubmit: String) = submitButton match {
+        case Some(buttonId) => ("""$('#""" + buttonId + """').click(function(evt) { evt.preventDefault(); } );
+                                   $('#""" + buttonId + """').attr('disabled', 'disabled');""",
+                                """$('#""" + buttonId + """').unbind('click');
+                                   $('#""" + buttonId + """').removeAttr('disabled');""")
+        case None => ("", "")
     }
-
-    def apply[T](id: String, onSuccess: T => Unit, exp: Regex, originalValue: T, errorMessage: String): (T => JsCmd) =
-        apply[T](id, Some(onSuccess), Some(exp), Some(originalValue), Some(errorMessage))
-
-    def apply[T](id: String, onSuccess: T => Unit, originalValue: T, errorMessage: String): (T => JsCmd) =
-        apply[T](id, Some(onSuccess), None, Some(originalValue), Some(errorMessage))
+    
+    def theSeq: Seq[Node] = errorBox ++ Script(onBlur)
 }
