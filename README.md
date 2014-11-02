@@ -1,10 +1,14 @@
 liftvalidation
 ==============
 
-A server-side input validation library for Lift
+An input validation library for Lift
 
 ```scala
-".repeater [onchange]" #> fields.map { (id: String, regex: Option[Regex], value: ValueCell[Option[String]]) =>
-    "* *" #> SHtml.ajaxText("", Validator[String](id, None, regex, value.get, Some("Please submit a valid entry"))
+    ".formRepeater" #> fields.map { 
+        case intField@IntValidator(id, _, _, _) => "#label" #> id & "#textbox" #> (SHtml.ajaxText("", (s: String) => Noop, "id" -> id) ++ intField)
+        case decimalField@DecimalValidator(id, _, _, _) => "#label" #> id & "#textbox" #> (SHtml.ajaxText("", (s: String) => Noop, "id" -> id) ++ decimalField)
+        case emailField@EmailValidator(id, _, _) => "#label" #> id & "#textbox" #> (SHtml.email("", (s: String) => Noop, "id" -> id) ++ emailField)
+        case _ => "* *" #> NodeSeq.Empty
+    }
 }
 ```
