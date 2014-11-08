@@ -1,8 +1,11 @@
-package com.fithian
+package fithian.validator
 
 import net.liftweb.http.js.JsExp
 import com.paytronix.utils.scala.result.{tryCatchValue, Failed, Result}
 
+/**
+ * A Validator class for integer values
+ */
 class IntValidator private(id: String, min: Int, max: Int, submitButton: Option[String], errorId: Option[String])
     extends Validator[Int](id, submitButton, errorId)
 {

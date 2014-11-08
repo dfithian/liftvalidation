@@ -1,8 +1,11 @@
-package com.fithian
+package fithian.validator
 
 import net.liftweb.http.js.JsExp
 import com.paytronix.utils.scala.result.{tryCatchValue, Failed, Result}
 
+/**
+ * A Validator class for decimal values
+ */
 class DecimalValidator private(id: String, min: BigDecimal, max: BigDecimal, submitButton: Option[String], errorId: Option[String])
     extends Validator[BigDecimal](id, submitButton, errorId)
 {

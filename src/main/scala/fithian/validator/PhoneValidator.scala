@@ -1,9 +1,12 @@
-package com.fithian
+package fithian.validator
 
 import net.liftweb.http.js.JsExp
 import scala.util.matching.Regex
 import com.paytronix.utils.scala.result.{Result, Okay, Failed}
 
+/**
+ * A Validator class for phone numbers
+ */
 class PhoneValidator private(id: String, regexOpt: Option[Regex], submitButton: Option[String], errorId: Option[String])
     extends Validator[String](id, submitButton, errorId) with RegexValidator
 {
