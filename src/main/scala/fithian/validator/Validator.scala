@@ -36,7 +36,7 @@ abstract class Validator[T](id: String, submitButton: Option[String], errorId: O
     private def bindOnBlur(s: String): JsCmd = {
         parse(s) match {
             case Failed(error) if !(s == null || s == "") =>
-                S.error(liftId, errorMessage + ". String was " + s)
+                S.error(liftId, errorMessage)
                 Run(preventSubmit)
             case _ =>
                 Run(SetHtml(liftId, <span/>)) & Run(allowSubmit)
